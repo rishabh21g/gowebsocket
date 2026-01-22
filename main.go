@@ -70,11 +70,13 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("Received message in room %s: %s", roomID, string(data))
 
-		// Broadcast to all in same room (including sender)
+		// Broadcast to all in same room (excluding sender)
 		mu.Lock()
 		for c := range rooms[roomID] {
-			if err := c.conn.WriteMessage(msgType, data); err != nil {
-				log.Println("Write error:", err)
+			if c != client {
+				if err := c.conn.WriteMessage(msgType, data); err != nil {
+					log.Println("Write error:", err)
+				}
 			}
 		}
 		mu.Unlock()
